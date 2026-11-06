@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs/promises';
+import path from 'node:path';
 import sharp from 'sharp';
 import {
   processAndStoreProductImage,
@@ -112,8 +113,10 @@ describe('image processing limits (sharp)', () => {
 describe('file lifecycle helpers', () => {
   it('maps public URLs back to file paths and refuses foreign paths', () => {
     const url = buildPublicUrl('1700000000000-aaaaaaaaaaaaaaaa.webp');
+    // `path.join`, because the helper returns a native path: a literal `/` between
+    // the directory and the file name only matches on POSIX.
     expect(publicUrlToPath(url)).toBe(
-      `${getProductImageDir()}/1700000000000-aaaaaaaaaaaaaaaa.webp`,
+      path.join(getProductImageDir(), '1700000000000-aaaaaaaaaaaaaaaa.webp'),
     );
     expect(publicUrlToPath('https://evil.example/x.png')).toBeNull();
     expect(publicUrlToPath('/etc/passwd')).toBeNull();

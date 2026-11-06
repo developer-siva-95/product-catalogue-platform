@@ -217,22 +217,61 @@ describe('<BrandsPage /> refresh and mutation sync', () => {
   });
 
   it('shows the spinner and refuses a second concurrent refresh', async () => {
-    const stub = createBrandFetch({ delayMs: 25 });
-    renderBrands(stub);
+    const stub = createBrandFetch();
+
+    // Deterministic in-flight window (same approach as the storefront refresh test):
+    // the refresh request is held open until the test releases it, so the duplicate
+    // clicks are guaranteed to land while it is still running. A fixed 25 ms delay was
+    // a race — on a loaded runner the refresh had already settled and re-enabled the
+    // button, so the extra clicks started real refresh rounds (3 list reads, not 2).
+    let releaseRefresh;
+    const refreshGate = new Promise((resolve) => {
+      releaseRefresh = resolve;
+    });
+    let listReads = 0;
+    const fetchMock = (input, init = {}) => {
+      const request = typeof input === 'string' ? null : input;
+      const url = request ? request.url : input;
+      const method = (request ? request.method : init.method) ?? 'GET';
+      const isListRead = method === 'GET' && new URL(url).pathname === '/api/v1/brands';
+      // `stub.fetchMock` records the call synchronously; only its response waits.
+      const response = stub.fetchMock(input, init);
+      if (!isListRead) return response;
+      listReads += 1;
+      if (listReads <= 1) return response; // the mount read of the list
+      return response.then(async (settled) => {
+        await refreshGate;
+        return settled;
+      });
+    };
+
+    renderBrands({ fetchMock, calls: stub.calls });
     const user = userEvent.setup();
     await screen.findByText('Aurora');
 
     const button = screen.getByRole('button', { name: /^refresh$/i });
     const before = listGets(stub.calls).length;
+    expect(before).toBe(1);
 
-    await user.click(button);
-    await waitFor(() => expect(button).toBeDisabled());
-    expect(button.querySelector('.btn__spinner')).not.toBeNull();
+    try {
+      await user.click(button);
 
-    await user.click(button);
-    await user.click(button);
+      // Exactly one extra list read, and it is still pending.
+      await waitFor(() => expect(listGets(stub.calls)).toHaveLength(before + 1));
+      await waitFor(() => expect(button).toBeDisabled());
+      expect(button.querySelector('.btn__spinner')).not.toBeNull();
+
+      // Two clicks while the refresh is definitely still in flight: no extra reads.
+      await user.click(button);
+      await user.click(button);
+      expect(listGets(stub.calls)).toHaveLength(before + 1);
+    } finally {
+      // Always release, even when an assertion above fails, so no request stays pending.
+      releaseRefresh();
+    }
 
     await waitFor(() => expect(button).toBeEnabled());
+    // The queued clicks never turned into requests, even once the refresh settled.
     expect(listGets(stub.calls)).toHaveLength(before + 1);
   });
 

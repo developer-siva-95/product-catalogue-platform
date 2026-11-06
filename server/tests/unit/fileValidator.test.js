@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import path from 'node:path';
 import sharp from 'sharp';
 import {
   detectImageType,
@@ -124,20 +125,37 @@ describe('validateImageMetadata', () => {
 });
 
 describe('resolveWithinDirectory (path traversal protection)', () => {
+  // Expectations are derived with this platform's own path semantics: the unit under
+  // test returns a *native* absolute path, so a hard-coded POSIX string would only
+  // hold on POSIX. `path.resolve` is also exactly what the implementation uses.
+  const baseDir = '/tmp/uploads';
+  const expected = (...segments) => path.resolve(baseDir, ...segments);
+
   it('resolves a normal filename inside the base directory', () => {
-    expect(resolveWithinDirectory('/tmp/uploads', 'photo.webp')).toBe('/tmp/uploads/photo.webp');
+    expect(resolveWithinDirectory(baseDir, 'photo.webp')).toBe(expected('photo.webp'));
   });
 
   it('strips directory components from the filename', () => {
-    expect(resolveWithinDirectory('/tmp/uploads', '../../etc/passwd')).toBe('/tmp/uploads/passwd');
-    expect(resolveWithinDirectory('/tmp/uploads', 'nested/photo.webp')).toBe(
-      '/tmp/uploads/photo.webp',
-    );
+    expect(resolveWithinDirectory(baseDir, '../../etc/passwd')).toBe(expected('passwd'));
+    expect(resolveWithinDirectory(baseDir, 'nested/photo.webp')).toBe(expected('photo.webp'));
+  });
+
+  it('keeps every resolved path inside the base directory', () => {
+    for (const filename of ['photo.webp', '../../etc/passwd', 'nested/photo.webp', 'a/../b.webp']) {
+      const resolved = resolveWithinDirectory(baseDir, filename);
+      const relative = path.relative(path.resolve(baseDir), resolved);
+      expect(relative.startsWith('..'), `${filename} escaped the base directory`).toBe(false);
+      expect(path.isAbsolute(relative)).toBe(false);
+    }
+  });
+
+  it('rejects a filename that resolves to the directory itself', () => {
+    expect(() => resolveWithinDirectory(baseDir, '..')).toThrow(/Path traversal/);
   });
 
   it('rejects null bytes and invalid names', () => {
-    expect(() => resolveWithinDirectory('/tmp/uploads', 'photo.webp\0.jpg')).toThrow();
-    expect(() => resolveWithinDirectory('/tmp/uploads', '')).toThrow(/Invalid file name/);
-    expect(() => resolveWithinDirectory('/tmp/uploads', undefined)).toThrow(/Invalid file name/);
+    expect(() => resolveWithinDirectory(baseDir, 'photo.webp\0.jpg')).toThrow();
+    expect(() => resolveWithinDirectory(baseDir, '')).toThrow(/Invalid file name/);
+    expect(() => resolveWithinDirectory(baseDir, undefined)).toThrow(/Invalid file name/);
   });
 });

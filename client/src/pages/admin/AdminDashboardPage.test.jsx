@@ -129,27 +129,63 @@ describe('<AdminDashboardPage /> refresh', () => {
 
   it('does not stack a second round when clicked again while refreshing', async () => {
     const stub = createDashboardFetch();
-    const slowStub = {
-      calls: stub.calls,
-      fetchMock: async (input, init) => {
-        await new Promise((resolve) => setTimeout(resolve, 20));
-        return stub.fetchMock(input, init);
-      },
+
+    // Deterministic in-flight window: the refresh round is held open by the test until
+    // it releases it, so the duplicate clicks are guaranteed to land while the round is
+    // still running. A fixed 20 ms delay was a race — on a loaded runner the round had
+    // already settled and re-enabled the button, so the two extra clicks legitimately
+    // started two more rounds (12 extra requests instead of 6).
+    let releaseRound;
+    const roundGate = new Promise((resolve) => {
+      releaseRound = resolve;
+    });
+    let reads = 0;
+    const fetchMock = (input, init = {}) => {
+      const method = (typeof input === 'string' ? init.method : input.method) ?? 'GET';
+      const isRead = method === 'GET';
+      // `stub.fetchMock` records the call synchronously; only its response waits, so
+      // the request count below reflects requests that were really issued.
+      const response = stub.fetchMock(input, init);
+      if (!isRead) return response;
+      reads += 1;
+      if (reads <= 6) return response; // the six dashboard queries of the mount round
+      return response.then(async (settled) => {
+        await roundGate;
+        return settled;
+      });
     };
-    renderDashboard(slowStub);
+
+    renderDashboard({ fetchMock, calls: stub.calls });
     const user = userEvent.setup();
     await screen.findByText('Aurora Desk Lamp');
 
     const button = screen.getByRole('button', { name: /refresh/i });
     const before = dashboardRequests(stub.calls).length;
+    // Six hooks: four product queries + brands + categories.
+    expect(before).toBe(6);
 
-    await user.click(button);
-    await waitFor(() => expect(button).toBeDisabled());
-    await user.click(button);
-    await user.click(button);
+    try {
+      await user.click(button);
+
+      // The whole round is issued — all six queries, exactly once — and stays pending.
+      await waitFor(() => expect(dashboardRequests(stub.calls).length).toBe(before + 6));
+      await waitFor(() => expect(button).toBeDisabled());
+      expect(button.querySelector('.btn__spinner')).not.toBeNull();
+
+      // Two clicks while the round is definitely still in flight: no second round.
+      await user.click(button);
+      await user.click(button);
+      expect(dashboardRequests(stub.calls).length).toBe(before + 6);
+    } finally {
+      // Always release, even when an assertion above fails, so no request is left pending.
+      releaseRound();
+    }
 
     await waitFor(() => expect(button).toBeEnabled());
     expect(dashboardRequests(stub.calls).length).toBe(before + 6);
+    // The figures and rows were never blanked while the round was in flight.
+    expect(screen.getByText('Aurora Desk Lamp')).toBeInTheDocument();
+    expect(screen.getByText('12')).toBeInTheDocument();
   });
 
   it('keeps the figures and reports the failure when a refresh fails', async () => {

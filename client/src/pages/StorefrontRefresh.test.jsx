@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router';
 import StorefrontPage from './StorefrontPage.jsx';
@@ -81,8 +81,32 @@ describe('<StorefrontPage /> manual refresh and mount freshness', () => {
 
   it('shows the in-progress state and refuses a duplicate refresh request', async () => {
     const user = userEvent.setup();
-    const stub = createStorefrontFetch({ delayMs: 25 });
-    const { calls } = renderList({ stub });
+    const stub = createStorefrontFetch();
+
+    // The in-flight window is held open by the test instead of by a timer, so the
+    // two extra clicks are *guaranteed* to land while the first refresh is still
+    // running. A fixed `delayMs` made this a race: on a slower/loaded runner the
+    // refresh finished first, the button re-enabled, and the extra clicks became
+    // legitimate new refreshes — three product requests instead of two.
+    let releaseRefresh;
+    const refreshGate = new Promise((resolve) => {
+      releaseRefresh = resolve;
+    });
+    let productsRequests = 0;
+    const fetchMock = (input, init) => {
+      const url = typeof input === 'string' ? input : input.url;
+      const isProducts = new URL(url).pathname.endsWith('/products');
+      if (isProducts) productsRequests += 1;
+      // `stub.fetchMock` records the call synchronously; only the *response* waits.
+      const response = stub.fetchMock(input, init);
+      if (!isProducts || productsRequests === 1) return response;
+      return response.then(async (settled) => {
+        await refreshGate;
+        return settled;
+      });
+    };
+
+    const { calls } = renderList({ stub: { fetchMock, calls: stub.calls } });
     await screen.findByText('Aurora Desk Lamp');
 
     const button = screen.getByRole('button', { name: /refresh/i });
@@ -90,15 +114,20 @@ describe('<StorefrontPage /> manual refresh and mount freshness', () => {
 
     await user.click(button);
 
-    // In flight: spinner + disabled, and the list is still usable.
+    // In flight: one request issued, spinner + disabled, list still usable.
+    await waitFor(() => expect(productRequests(calls)).toHaveLength(before + 1));
     await waitFor(() => expect(button).toBeDisabled());
     expect(button.querySelector('.btn__spinner')).not.toBeNull();
+    expect(screen.getByText('Aurora Desk Lamp')).toBeInTheDocument();
 
-    // Two further clicks must not queue two more requests.
+    // Two further clicks while the refresh is genuinely running: no extra requests.
     await user.click(button);
     await user.click(button);
+    expect(productRequests(calls)).toHaveLength(before + 1);
 
+    releaseRefresh();
     await waitFor(() => expect(button).toBeEnabled());
+    // The queued clicks never turned into requests, even once the refresh settles.
     expect(productRequests(calls)).toHaveLength(before + 1);
   });
 
@@ -166,8 +195,9 @@ describe('<StorefrontPage /> manual refresh and mount freshness', () => {
     const { calls } = renderList();
     await screen.findByText('Aurora Desk Lamp');
 
-    // Scroll the sentinel into view → second page appended.
-    observer.emit(true);
+    // Scroll the sentinel into view → second page appended. Wrapped in `act` because
+    // the observer callback sets page state synchronously (outside a React event).
+    act(() => observer.emit(true));
     expect(await screen.findByText('Vertex Standing Desk')).toBeInTheDocument();
     const afterPaging = productRequests(calls).length;
     expect(afterPaging).toBe(2);
@@ -182,6 +212,11 @@ describe('<StorefrontPage /> manual refresh and mount freshness', () => {
     expect(screen.getByText('Aurora Desk Lamp')).toBeInTheDocument();
     expect(screen.getByText('Nimbus Office Chair')).toBeInTheDocument();
     expect(screen.getByText('Vertex Standing Desk')).toBeInTheDocument();
+
+    // Wait for the refresh to settle before the test ends: the request count rises
+    // as soon as `fetch` is called, so asserting on it alone can leave the response's
+    // render to land after the test (the "not wrapped in act(...)" warning).
+    await waitFor(() => expect(screen.getByRole('button', { name: /refresh/i })).toBeEnabled());
   });
 
   it('keeps filters and sort in the request a refresh makes', async () => {

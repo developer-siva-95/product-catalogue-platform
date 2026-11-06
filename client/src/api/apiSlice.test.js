@@ -297,7 +297,19 @@ describe('storefront list cache', () => {
  * contain it, and the inventory views — active queries refetch immediately,
  * inactive entries are marked invalid so a later subscription cannot treat them as
  * fresh.
+ *
+ * The assertions below are **runtime** ones: every test drives the real store, the
+ * real RTK Query middleware and the real tag graph (only `fetch` is stubbed), then
+ * inspects the resulting cache entries with `selectInvalidatedBy` and the requests
+ * that actually went out. Nothing reads endpoint definitions off the endpoint
+ * object — RTK Query does not expose `providesTags`/`invalidatesTags` there, and
+ * the contract that matters is the invalidation that happens at runtime.
  */
+
+/** GET requests that were actually issued to a path (mutations are filtered out). */
+const getCount = (calls, pathname) =>
+  calls.filter((call) => call.method === 'GET' && call.pathname.endsWith(pathname)).length;
+
 describe('apiSlice tag contract (product / inventory)', () => {
   let store;
 
@@ -311,64 +323,145 @@ describe('apiSlice tag contract (product / inventory)', () => {
     apiSlice.util.resetApiState();
   });
 
-  const tagList = (tags) =>
-    tags.map((tag) => (typeof tag === 'string' ? tag : `${tag.type}:${tag.id}`)).sort();
-
-  it('provides per-document product and inventory tags on the admin list', () => {
-    const tags = apiSlice.endpoints.getAdminProducts.providesTags({
-      data: [product('p1'), product('p2')],
-    });
-
-    expect(tagList(tags)).toEqual(
-      tagList([
-        { type: 'Product', id: 'LIST' },
-        { type: 'Inventory', id: 'LIST' },
-        { type: 'Product', id: 'p1' },
-        { type: 'Product', id: 'p2' },
-        { type: 'Inventory', id: 'p1' },
-        { type: 'Inventory', id: 'p2' },
-      ]),
+  /** Cache entries the invalidation engine would select for `tag`. */
+  const entriesFor = (tag) =>
+    apiSlice.util.selectInvalidatedBy(
+      { [apiSlice.reducerPath]: store.getState()[apiSlice.reducerPath] },
+      [tag],
     );
+
+  /** Does `endpointName` hold a cache entry that provides `tag`? */
+  const hasEntry = (endpointName, tag) =>
+    entriesFor(tag).some((entry) => entry.endpointName === endpointName);
+
+  it('publishes per-document product and inventory tags from the admin list', async () => {
+    stubTagContractFetch();
+    const list = store.dispatch(
+      apiSlice.endpoints.getAdminProducts.initiate({ page: 1, limit: 10 }),
+    );
+    await list;
+
+    for (const tag of [
+      { type: 'Product', id: 'LIST' },
+      { type: 'Inventory', id: 'LIST' },
+      { type: 'Product', id: 'p1' },
+      { type: 'Product', id: 'p2' },
+      { type: 'Inventory', id: 'p1' },
+      { type: 'Inventory', id: 'p2' },
+    ]) {
+      expect(
+        hasEntry('getAdminProducts', tag),
+        `the admin list must provide ${tag.type}:${tag.id}`,
+      ).toBe(true);
+    }
+
+    // Granularity: a product the list does not contain is not covered by it.
+    expect(entriesFor({ type: 'Product', id: 'p3' })).toHaveLength(0);
+    expect(entriesFor({ type: 'Inventory', id: 'p3' })).toHaveLength(0);
+
+    list.unsubscribe();
   });
 
-  it('provides an inventory tag for the admin detail of a product', () => {
-    expect(
-      tagList(apiSlice.endpoints.getAdminProduct.providesTags(undefined, undefined, 'p1')),
-    ).toEqual(
-      tagList([
-        { type: 'Product', id: 'p1' },
-        { type: 'Inventory', id: 'p1' },
-      ]),
-    );
+  it('publishes product and inventory tags from the admin detail', async () => {
+    stubTagContractFetch();
+    const detail = store.dispatch(apiSlice.endpoints.getAdminProduct.initiate('p1'));
+    await detail;
+
+    expect(hasEntry('getAdminProduct', { type: 'Product', id: 'p1' })).toBe(true);
+    expect(hasEntry('getAdminProduct', { type: 'Inventory', id: 'p1' })).toBe(true);
+
+    // The admin detail is the stock view of *that* product, not of the catalogue.
+    expect(entriesFor({ type: 'Inventory', id: 'p2' })).toHaveLength(0);
+    expect(entriesFor({ type: 'Product', id: 'LIST' })).toHaveLength(0);
+    expect(entriesFor({ type: 'Inventory', id: 'LIST' })).toHaveLength(0);
+
+    detail.unsubscribe();
   });
 
   it.each([
-    ['updateProduct', { id: 'p1', title: 'Renamed' }],
+    ['updateProduct', { id: 'p1', body: { title: 'Renamed' } }],
     ['updateStock', { id: 'p1', delta: 1 }],
     ['deleteProduct', 'p1'],
-  ])('%s invalidates the document, its list and its inventory views', (endpoint, arg) => {
-    const tags = apiSlice.endpoints[endpoint].invalidatesTags(undefined, undefined, arg);
+  ])('%s refreshes the open list and the open document', async (endpoint, arg) => {
+    const calls = stubTagContractFetch();
+    const list = store.dispatch(
+      apiSlice.endpoints.getAdminProducts.initiate({ page: 1, limit: 10 }),
+    );
+    await list;
+    const detail = store.dispatch(apiSlice.endpoints.getAdminProduct.initiate('p1'));
+    await detail;
 
-    expect(tagList(tags)).toEqual(
-      tagList([
-        { type: 'Product', id: 'p1' },
-        { type: 'Product', id: 'LIST' },
+    expect([getCount(calls, '/admin/products'), getCount(calls, '/admin/products/p1')]).toEqual([
+      1, 1,
+    ]);
+
+    await store.dispatch(apiSlice.endpoints[endpoint].initiate(arg));
+
+    // Both entries were active, so the invalidation refetches them immediately —
+    // no manual `refetch()` anywhere in the app.
+    await waitFor(() => expect(getCount(calls, '/admin/products')).toBe(2));
+    await waitFor(() => expect(getCount(calls, '/admin/products/p1')).toBe(2));
+
+    list.unsubscribe();
+    detail.unsubscribe();
+  });
+
+  it('treats the admin list and the admin detail as inventory views', async () => {
+    const calls = stubTagContractFetch();
+    const list = store.dispatch(
+      apiSlice.endpoints.getAdminProducts.initiate({ page: 1, limit: 10 }),
+    );
+    await list;
+    const detail = store.dispatch(apiSlice.endpoints.getAdminProduct.initiate('p1'));
+    await detail;
+
+    expect([getCount(calls, '/admin/products'), getCount(calls, '/admin/products/p1')]).toEqual([
+      1, 1,
+    ]);
+
+    // `updateStock` invalidates exactly these two Inventory tags; invalidating them
+    // directly shows that both views are subscribed to the inventory contract.
+    store.dispatch(
+      apiSlice.util.invalidateTags([
         { type: 'Inventory', id: 'p1' },
         { type: 'Inventory', id: 'LIST' },
       ]),
     );
+
+    await waitFor(() => expect(getCount(calls, '/admin/products/p1')).toBe(2));
+    await waitFor(() => expect(getCount(calls, '/admin/products')).toBe(2));
+
+    list.unsubscribe();
+    detail.unsubscribe();
   });
 
-  it('createProduct invalidates the lists, inventory and the taxonomy', () => {
-    const tags = apiSlice.endpoints.createProduct.invalidatesTags(undefined, undefined, {});
-    expect(tagList(tags)).toEqual(
-      tagList([
-        { type: 'Product', id: 'LIST' },
-        { type: 'Inventory', id: 'LIST' },
-        'Brand',
-        'Category',
-      ]),
+  it('createProduct refreshes the product lists and both taxonomy facets', async () => {
+    const calls = stubTagContractFetch();
+    const list = store.dispatch(
+      apiSlice.endpoints.getAdminProducts.initiate({ page: 1, limit: 10 }),
     );
+    await list;
+    const brands = store.dispatch(apiSlice.endpoints.getBrands.initiate({}));
+    await brands;
+    const categories = store.dispatch(apiSlice.endpoints.getCategories.initiate({}));
+    await categories;
+
+    expect([
+      getCount(calls, '/admin/products'),
+      getCount(calls, '/brands'),
+      getCount(calls, '/categories'),
+    ]).toEqual([1, 1, 1]);
+
+    await store.dispatch(apiSlice.endpoints.createProduct.initiate(new FormData()));
+
+    // A new product can introduce a brand/category, so the facets are refreshed too.
+    await waitFor(() => expect(getCount(calls, '/admin/products')).toBe(2));
+    await waitFor(() => expect(getCount(calls, '/brands')).toBe(2));
+    await waitFor(() => expect(getCount(calls, '/categories')).toBe(2));
+
+    list.unsubscribe();
+    brands.unsubscribe();
+    categories.unsubscribe();
   });
 
   it('resolves a mutation of one product to that document and to the lists', async () => {
@@ -468,6 +561,9 @@ function stubAdminFetch() {
  * Broad `{ type: 'Product' }` invalidation (no id) is used for (2): the client
  * cannot know which product documents reference a taxonomy id, and an id-less tag
  * matches every `Product` tag — list *and* detail.
+ *
+ * As in the product block above, every assertion is behavioural: subscribe real
+ * queries, dispatch the real mutation, count the refetches.
  */
 describe('apiSlice tag contract (brands and categories)', () => {
   let store;
@@ -482,62 +578,118 @@ describe('apiSlice tag contract (brands and categories)', () => {
     apiSlice.util.resetApiState();
   });
 
-  const tagList = (tags) =>
-    tags.map((tag) => (typeof tag === 'string' ? tag : `${tag.type}:${tag.id ?? '*'}`)).sort();
-
-  it('provides per-document and list tags for brands', () => {
-    const tags = apiSlice.endpoints.getBrands.providesTags({
-      data: [{ id: 'brand-1' }, { id: 'brand-2' }],
-    });
-    expect(tagList(tags)).toEqual(
-      tagList([
-        { type: 'Brand', id: 'brand-1' },
-        { type: 'Brand', id: 'brand-2' },
-        { type: 'Brand', id: 'LIST' },
-      ]),
+  const entriesFor = (tag) =>
+    apiSlice.util.selectInvalidatedBy(
+      { [apiSlice.reducerPath]: store.getState()[apiSlice.reducerPath] },
+      [tag],
     );
+
+  const hasEntry = (endpointName, tag) =>
+    entriesFor(tag).some((entry) => entry.endpointName === endpointName);
+
+  it('publishes per-document and list tags from the brand list', async () => {
+    stubTagContractFetch();
+    const brands = store.dispatch(apiSlice.endpoints.getBrands.initiate({}));
+    await brands;
+
+    expect(hasEntry('getBrands', { type: 'Brand', id: 'brand-1' })).toBe(true);
+    expect(hasEntry('getBrands', { type: 'Brand', id: 'brand-2' })).toBe(true);
+    expect(hasEntry('getBrands', { type: 'Brand', id: 'LIST' })).toBe(true);
+
+    // A brand that is not in the list is not covered by it, and brand tags never
+    // bleed into the category type.
+    expect(entriesFor({ type: 'Brand', id: 'brand-9' })).toHaveLength(0);
+    expect(entriesFor({ type: 'Category', id: 'LIST' })).toHaveLength(0);
+
+    brands.unsubscribe();
+  });
+
+  it('still publishes the brand list tag when the list is empty', async () => {
+    stubTagContractFetch({ brands: [] });
+    const brands = store.dispatch(apiSlice.endpoints.getBrands.initiate({}));
+    await brands;
+
     // A failed/empty response still identifies the list it belongs to.
-    expect(tagList(apiSlice.endpoints.getBrands.providesTags({ data: [] }))).toEqual(
-      tagList([{ type: 'Brand', id: 'LIST' }]),
-    );
+    expect(hasEntry('getBrands', { type: 'Brand', id: 'LIST' })).toBe(true);
+
+    brands.unsubscribe();
   });
 
-  it('provides per-document and list tags for categories', () => {
-    const tags = apiSlice.endpoints.getCategories.providesTags({
-      data: [{ id: 'cat-1' }],
-    });
-    expect(tagList(tags)).toEqual(
-      tagList([
-        { type: 'Category', id: 'cat-1' },
-        { type: 'Category', id: 'LIST' },
-      ]),
-    );
-  });
+  it('publishes per-document and list tags from the category list', async () => {
+    stubTagContractFetch();
+    const categories = store.dispatch(apiSlice.endpoints.getCategories.initiate({}));
+    await categories;
 
-  it.each([
-    ['createBrand', {}, ['Brand:LIST', 'Product:*']],
-    [
-      'updateBrand',
-      { id: 'brand-1', name: 'Aurora X' },
-      ['Brand:brand-1', 'Brand:LIST', 'Product:*'],
-    ],
-    ['deleteBrand', 'brand-1', ['Brand:LIST', 'Product:*']],
-  ])('%s invalidates its brand tags and the product displays', (endpoint, arg, expected) => {
-    const tags = apiSlice.endpoints[endpoint].invalidatesTags(undefined, undefined, arg);
-    expect(tagList(tags)).toEqual(tagList(expected.map(parseTag)));
+    expect(hasEntry('getCategories', { type: 'Category', id: 'cat-1' })).toBe(true);
+    expect(hasEntry('getCategories', { type: 'Category', id: 'LIST' })).toBe(true);
+    expect(entriesFor({ type: 'Category', id: 'cat-9' })).toHaveLength(0);
+
+    categories.unsubscribe();
   });
 
   it.each([
-    ['createCategory', {}, ['Category:LIST', 'Product:*']],
-    [
-      'updateCategory',
-      { id: 'cat-1', name: 'Lamps' },
-      ['Category:cat-1', 'Category:LIST', 'Product:*'],
-    ],
-    ['deleteCategory', 'cat-1', ['Category:LIST', 'Product:*']],
-  ])('%s invalidates its category tags and the product displays', (endpoint, arg, expected) => {
-    const tags = apiSlice.endpoints[endpoint].invalidatesTags(undefined, undefined, arg);
-    expect(tagList(tags)).toEqual(tagList(expected.map(parseTag)));
+    ['createBrand', { name: 'Aurora X' }],
+    ['updateBrand', { id: 'brand-1', name: 'Aurora X' }],
+    ['deleteBrand', 'brand-1'],
+  ])('%s refreshes brand queries and the product displays', async (endpoint, arg) => {
+    const calls = stubTagContractFetch();
+    const brands = store.dispatch(apiSlice.endpoints.getBrands.initiate({}));
+    await brands;
+    const list = store.dispatch(
+      apiSlice.endpoints.getStorefrontProducts.initiate({ limit: 2, sort: 'newest' }),
+    );
+    await list;
+    const detail = store.dispatch(apiSlice.endpoints.getProduct.initiate('p1'));
+    await detail;
+
+    expect([
+      getCount(calls, '/brands'),
+      getCount(calls, '/products'),
+      getCount(calls, '/products/p1'),
+    ]).toEqual([1, 1, 1]);
+
+    await store.dispatch(apiSlice.endpoints[endpoint].initiate(arg));
+
+    await waitFor(() => expect(getCount(calls, '/brands')).toBe(2));
+    // Brand names are embedded in product payloads, so both product views refresh.
+    await waitFor(() => expect(getCount(calls, '/products')).toBe(2));
+    await waitFor(() => expect(getCount(calls, '/products/p1')).toBe(2));
+
+    brands.unsubscribe();
+    list.unsubscribe();
+    detail.unsubscribe();
+  });
+
+  it.each([
+    ['createCategory', { name: 'Lamps' }],
+    ['updateCategory', { id: 'cat-1', name: 'Lamps' }],
+    ['deleteCategory', 'cat-1'],
+  ])('%s refreshes category queries and the product displays', async (endpoint, arg) => {
+    const calls = stubTagContractFetch();
+    const categories = store.dispatch(apiSlice.endpoints.getCategories.initiate({}));
+    await categories;
+    const list = store.dispatch(
+      apiSlice.endpoints.getStorefrontProducts.initiate({ limit: 2, sort: 'newest' }),
+    );
+    await list;
+    const detail = store.dispatch(apiSlice.endpoints.getProduct.initiate('p1'));
+    await detail;
+
+    expect([
+      getCount(calls, '/categories'),
+      getCount(calls, '/products'),
+      getCount(calls, '/products/p1'),
+    ]).toEqual([1, 1, 1]);
+
+    await store.dispatch(apiSlice.endpoints[endpoint].initiate(arg));
+
+    await waitFor(() => expect(getCount(calls, '/categories')).toBe(2));
+    await waitFor(() => expect(getCount(calls, '/products')).toBe(2));
+    await waitFor(() => expect(getCount(calls, '/products/p1')).toBe(2));
+
+    categories.unsubscribe();
+    list.unsubscribe();
+    detail.unsubscribe();
   });
 
   it('refetches a subscribed customer product list after a brand edit', async () => {
@@ -581,10 +733,82 @@ describe('apiSlice tag contract (brands and categories)', () => {
   });
 });
 
-/** Parses a `Type:id` shorthand used by the table above into a tag object. */
-function parseTag(shorthand) {
-  const [type, id] = shorthand.split(':');
-  return id === '*' ? { type } : { type, id };
+/**
+ * Stub for every endpoint the tag-contract tests touch: admin list/detail and the
+ * product writes, storefront list/detail, and the brand/category queries and
+ * writes. Only `fetch` is faked — the store, the middleware and the tag graph are
+ * the real ones — and every call is recorded so refetches can be counted.
+ */
+function stubTagContractFetch({
+  brands = [
+    { id: 'brand-1', name: 'Aurora' },
+    { id: 'brand-2', name: 'Halo' },
+  ],
+  categories = [{ id: 'cat-1', name: 'Lighting' }],
+} = {}) {
+  const calls = [];
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input, init = {}) => {
+      const url = new URL(typeof input === 'string' ? input : input.url);
+      const method = (typeof input === 'string' ? init.method : input.method) ?? 'GET';
+      const { pathname } = url;
+      calls.push({ method, pathname });
+
+      if (method === 'GET') {
+        if (pathname.endsWith('/auth/csrf')) return jsonResponse({ data: { csrfToken: 'csrf' } });
+        if (pathname.endsWith('/admin/products')) {
+          return jsonResponse({
+            data: [product('p1'), product('p2')],
+            meta: { page: 1, limit: 10, total: 2, totalPages: 1 },
+          });
+        }
+        if (/\/admin\/products\/[^/]+$/.test(pathname)) {
+          const id = pathname.split('/').pop();
+          return jsonResponse({ data: { ...product(id), stock: 99 } });
+        }
+        if (pathname.endsWith('/products')) {
+          return jsonResponse({
+            data: [product('p1'), product('p2')],
+            meta: { nextCursor: null, hasNextPage: false, limit: 2, sort: 'newest', count: 2 },
+          });
+        }
+        if (/\/products\/[^/]+$/.test(pathname)) {
+          const id = pathname.split('/').pop();
+          return jsonResponse({ data: product(id) });
+        }
+        if (pathname.endsWith('/brands')) return jsonResponse({ data: brands });
+        if (pathname.endsWith('/categories')) return jsonResponse({ data: categories });
+      }
+
+      if (method === 'POST' && pathname.endsWith('/admin/products')) {
+        return jsonResponse({ data: product('p9') }, { status: 201 });
+      }
+      if (method === 'PATCH' && /\/admin\/products\/[^/]+\/stock$/.test(pathname)) {
+        return jsonResponse({ data: { ...product('p1'), stock: 8, stockStatus: 'low_stock' } });
+      }
+      if (/\/admin\/products\/[^/]+$/.test(pathname)) {
+        // PUT / PATCH / DELETE of one product.
+        return jsonResponse({ data: product('p1') });
+      }
+      if (pathname.endsWith('/brands')) {
+        return jsonResponse({ data: { id: 'brand-9', name: 'Aurora X' } }, { status: 201 });
+      }
+      if (/\/brands\/[^/]+$/.test(pathname)) {
+        return jsonResponse({ data: { id: pathname.split('/').pop(), name: 'Aurora X' } });
+      }
+      if (pathname.endsWith('/categories')) {
+        return jsonResponse({ data: { id: 'cat-9', name: 'Lamps' } }, { status: 201 });
+      }
+      if (/\/categories\/[^/]+$/.test(pathname)) {
+        return jsonResponse({ data: { id: pathname.split('/').pop(), name: 'Lamps' } });
+      }
+
+      return jsonResponse({ error: { code: 'ROUTE_NOT_FOUND' } }, { status: 404 });
+    }),
+  );
+
+  return calls;
 }
 
 /** Storefront product endpoints plus the brand/category write endpoints. */
