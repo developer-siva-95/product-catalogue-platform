@@ -1,0 +1,1278 @@
+{
+  "generatedAt": "2026-11-06T06:57:33.140Z",
+  "note": "Pre-P1 output of toPublicProduct/toAdminProduct in modules/products/service.js. Regenerate only with an intentional contract change.",
+  "cases": [
+    {
+      "name": "in_stock",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 3
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 3
+      }
+    },
+    {
+      "name": "low_stock_boundary_5",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 5,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 3
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 5,
+        "inStock": true,
+        "stockStatus": "low_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 5,
+        "inStock": true,
+        "stockStatus": "low_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 3
+      }
+    },
+    {
+      "name": "low_stock_boundary_1",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 1,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 3
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 1,
+        "inStock": true,
+        "stockStatus": "low_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 1,
+        "inStock": true,
+        "stockStatus": "low_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 3
+      }
+    },
+    {
+      "name": "out_of_stock",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 0,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 3
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 0,
+        "inStock": false,
+        "stockStatus": "out_of_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 0,
+        "inStock": false,
+        "stockStatus": "out_of_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 3
+      }
+    },
+    {
+      "name": "in_stock_boundary_6",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 6,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 3
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 6,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 6,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 3
+      }
+    },
+    {
+      "name": "missing_sku",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "__undefined__",
+        "price": 19.99,
+        "stock": 10,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 3
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": null,
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": null,
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 3
+      }
+    },
+    {
+      "name": "null_sku",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": null,
+        "price": 19.99,
+        "stock": 10,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 3
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": null,
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": null,
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 3
+      }
+    },
+    {
+      "name": "empty_thumbnail_falls_back_to_image",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 3
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 3
+      }
+    },
+    {
+      "name": "inactive",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": false,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 3
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": false,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": false,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 3
+      }
+    },
+    {
+      "name": "decimal_price",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 1234.56,
+        "stock": 10,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 3
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 1234.56,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 1234.56,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 3
+      }
+    },
+    {
+      "name": "integer_price",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 100,
+        "stock": 10,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 3
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 100,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 100,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 3
+      }
+    },
+    {
+      "name": "zero_price",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 0,
+        "stock": 10,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 3
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 0,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 0,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 3
+      }
+    },
+    {
+      "name": "no_brand_or_category",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": null,
+        "category": null,
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 3
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": null,
+        "category": null,
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": null,
+        "category": null,
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 3
+      }
+    },
+    {
+      "name": "version_zero",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 0
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 0
+      }
+    },
+    {
+      "name": "version_absent",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": "__undefined__"
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 10,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 0
+      }
+    },
+    {
+      "name": "large_stock",
+      "input": {
+        "_id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 999999,
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "_id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "_id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "__v": 3
+      },
+      "public": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 999999,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z"
+      },
+      "admin": {
+        "id": "65a000000000000000000001",
+        "title": "Alpha Sneaker",
+        "slug": "alpha-sneaker",
+        "sku": "ACM-001",
+        "price": 19.99,
+        "stock": 999999,
+        "inStock": true,
+        "stockStatus": "in_stock",
+        "description": "Alpha Sneaker description",
+        "image": "/uploads/a.svg",
+        "thumbnail": "/uploads/a-thumb.svg",
+        "brand": {
+          "id": "650000000000000000000001",
+          "name": "Acme",
+          "slug": "acme"
+        },
+        "category": {
+          "id": "651000000000000000000001",
+          "name": "Footwear",
+          "slug": "footwear"
+        },
+        "isActive": true,
+        "createdAt": "2026-01-01T12:00:00.000Z",
+        "updatedAt": "2026-01-02T08:30:15.250Z",
+        "version": 3
+      }
+    }
+  ]
+}

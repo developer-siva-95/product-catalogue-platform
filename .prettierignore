@@ -1,0 +1,16 @@
+node_modules
+dist
+coverage
+playwright-report
+test-results
+package-lock.json
+server/uploads
+e2e/.auth
+.cache
+
+# generated audit artefacts
+audit/*-results.json
+audit/*-audit.json
+audit/responsive/
+audit/lifecycle-probe.json
+audit/dom-budget.json

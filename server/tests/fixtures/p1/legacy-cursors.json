@@ -1,0 +1,41 @@
+{
+  "note": "Cursors minted by the pre-P1 implementation (Phase 0 code, 2026-11-06). They must keep decoding after any refactor: the cursor format is part of the public contract.",
+  "capturedAt": "2026-11-06T06:57:34.919Z",
+  "cursors": [
+    {
+      "sort": "newest",
+      "token": "eyJ2IjoxLCJzIjoibmV3ZXN0IiwiaSI6IjY1YTAwMDAwMDAwMDAwMDAwMDAwMDAwMyIsImYiOiI1YTgzY2RlM2UzNGVhN2I5In0.0WKBuDiIwW5_MZMEyZCJ_VDKgu_kjflFLM6D_5TsuTQ",
+      "payload": {
+        "v": 1,
+        "s": "newest",
+        "i": "65a000000000000000000003",
+        "f": "5a83cde3e34ea7b9"
+      },
+      "filterContext": {
+        "search": null,
+        "minPrice": null,
+        "maxPrice": null,
+        "brand": null,
+        "category": null
+      }
+    },
+    {
+      "sort": "price_asc",
+      "token": "eyJ2IjoxLCJzIjoicHJpY2VfYXNjIiwiaSI6IjY1YTAwMDAwMDAwMDAwMDAwMDAwMDAwMSIsImYiOiI2NjJiNGQ1YTQzNDI3ZWE4IiwicCI6MTkuOTl9.E6PykRok6VW5pk25VLwfo8h5FrSPbzkFmqMq_YClTfM",
+      "payload": {
+        "v": 1,
+        "s": "price_asc",
+        "i": "65a000000000000000000001",
+        "f": "662b4d5a43427ea8",
+        "p": 19.99
+      },
+      "filterContext": {
+        "search": null,
+        "minPrice": null,
+        "maxPrice": null,
+        "brand": null,
+        "category": null
+      }
+    }
+  ]
+}

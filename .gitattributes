@@ -1,0 +1,27 @@
+# Normalise line endings so a clone on Windows and a clone on Linux produce the
+# same files. Windows users must NOT need `git config core.autocrlf` for this repo
+# to work: LF in the working tree is fine for Node on every platform.
+* text=auto eol=lf
+
+# Shell scripts are executed by bash/sh (WSL, Git Bash, Linux, macOS, CI).
+*.sh   text eol=lf
+*.bash text eol=lf
+
+# Windows-native scripts keep CRLF so cmd.exe/PowerShell parse them predictably.
+*.cmd  text eol=crlf
+*.bat  text eol=crlf
+*.ps1  text eol=crlf
+
+# Never convert or diff these as text.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.ico  binary
+*.gif  binary
+*.zip  binary
+*.woff binary
+*.woff2 binary
+
+# Keep lockfiles reviewable but unprejudiced by line-ending churn.
+package-lock.json text eol=lf linguist-generated=true

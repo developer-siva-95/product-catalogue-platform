@@ -1,0 +1,235 @@
+name: CI
+
+# Both providers are first-class: the MongoDB job and the MySQL job run the same
+# unit + integration + contract suites, and a third job re-checks that the public
+# API contract is byte-identical across the two.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # ---------------------------------------------------------------- MongoDB
+  mongodb:
+    name: tests (mongodb provider)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Lint + format
+        run: npm run lint && npm run format:check
+      - name: Server + client tests (MongoDB replica set via mongodb-memory-server)
+        env:
+          DATABASE_PROVIDER: mongodb
+        run: npm run test
+      - name: Client build
+        run: npm run build
+      # One command covers both launchers through npm:
+      #   npm run launcher:check -> steps.mjs -> npm run launcher:env -> with-env.mjs -> child
+      # No database and no Playwright are involved, so it is safe in every job.
+      - name: Node launchers (steps.mjs + with-env.mjs)
+        run: npm run launcher:check
+
+  # ------------------------------------------------------------------ MySQL
+  mysql:
+    name: tests (mysql provider)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      mysql:
+        # Phase 0 decision D1(b): MySQL 8.0 only, no MariaDB.
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: storefront_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DATABASE_PROVIDER: mysql
+      MYSQL_HOST: 127.0.0.1
+      MYSQL_PORT: 3306
+      MYSQL_TEST_HOST: 127.0.0.1
+      MYSQL_TEST_PORT: 3306
+      MYSQL_TEST_USER: storefront_migrator
+      MYSQL_TEST_PASSWORD: ci_migrator_pw
+      MYSQL_TEST_DATABASE: storefront_it_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+
+      - name: Provision least-privilege users (never committed to the repo)
+        run: |
+          mysql -h127.0.0.1 -uroot -proot -e "
+            CREATE DATABASE IF NOT EXISTS storefront_it_test;
+            CREATE USER IF NOT EXISTS 'storefront_migrator'@'%' IDENTIFIED BY '${MYSQL_TEST_PASSWORD}';
+            CREATE USER IF NOT EXISTS 'storefront_app'@'%' IDENTIFIED BY 'ci_app_pw';
+            GRANT ALL PRIVILEGES ON storefront_it_test.* TO 'storefront_migrator'@'%';
+            GRANT SELECT, INSERT, UPDATE, DELETE ON storefront_it_test.* TO 'storefront_app'@'%';
+            FLUSH PRIVILEGES;"
+
+      - name: MySQL version (recorded in the phase reports)
+        run: mysql -h127.0.0.1 -uroot -proot -e 'SELECT VERSION();'
+
+      # MYSQL_REQUIRE=1 turns a missing/unreachable server into a failure instead of
+      # a skip: a skipped MySQL suite must never be able to look green.
+      - name: MySQL suite (foundation, repositories, contracts, capabilities, concurrency, seed, ops)
+        run: npm run test:mysql
+
+      - name: Migration suite (messy fixture, dry run, confirmations, idempotency, rollback)
+        run: npm run test:migration
+
+  # ------------------------------------------------- API contract stability
+  contract-parity:
+    name: API contract parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [mongodb]
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: storefront_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      MYSQL_TEST_HOST: 127.0.0.1
+      MYSQL_TEST_PORT: 3306
+      MYSQL_TEST_USER: storefront_migrator
+      MYSQL_TEST_PASSWORD: ci_migrator_pw
+      MYSQL_TEST_DATABASE: storefront_it_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Provision least-privilege users
+        run: |
+          mysql -h127.0.0.1 -uroot -proot -e "
+            CREATE DATABASE IF NOT EXISTS storefront_it_test;
+            CREATE USER IF NOT EXISTS 'storefront_migrator'@'%' IDENTIFIED BY '${MYSQL_TEST_PASSWORD}';
+            GRANT ALL PRIVILEGES ON storefront_it_test.* TO 'storefront_migrator'@'%';
+            FLUSH PRIVILEGES;"
+      - name: Snapshot the API contract on MongoDB
+        env:
+          DATABASE_PROVIDER: mongodb
+        run: node audit/api-contract-snapshot.mjs --out /tmp/mongo.json
+      - name: Snapshot the API contract on MySQL
+        env:
+          DATABASE_PROVIDER: mysql
+        run: node audit/api-contract-snapshot.mjs --out /tmp/mysql.json
+      - name: The two providers must be byte-identical
+        run: node audit/api-contract-diff.mjs /tmp/mongo.json /tmp/mysql.json
+
+  # ------------------------------------------------- cross-platform Node scripts
+  # Scope of these two jobs, deliberately narrow:
+  #   * install, lint, the database-free server suite, and BOTH Node launchers
+  #   * no MySQL service, no MongoDB service, no Playwright
+  # They do NOT prove that MySQL, MongoDB or Playwright work on Windows or macOS.
+  # The server suite supplies MongoDB itself (mongodb-memory-server downloads a
+  # mongod binary at test time); nothing needs to be preinstalled on the runner.
+  windows-scripts:
+    name: scripts (windows-latest)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      # These runners provision no MySQL: MongoDB is selected explicitly, never by
+      # falling through to an unset variable.
+      DATABASE_PROVIDER: mongodb
+      # Keep the mongod binary in step with server/tests/globalSetup.js.
+      MONGOMS_VERSION: '7.0.14'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      # mongodb-memory-server downloads ~175 MB of mongod on first use; without this,
+      # every run pays for it. Restored after `npm ci`, which wipes node_modules.
+      - name: Cache the mongod binary (mongodb-memory-server)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/mongodb-binaries
+            node_modules/.cache/mongodb-memory-server
+          key: ${{ runner.os }}-mongod-${{ env.MONGOMS_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-mongod-
+      - name: Lint
+        run: npm run lint
+      - name: Server tests (in-memory MongoDB; MySQL suites skip without MYSQL_TEST_*)
+        run: npm run test:server
+      # Both launchers through npm: steps.mjs -> npm run launcher:env -> with-env.mjs -> child.
+      - name: Node launchers (steps.mjs + with-env.mjs)
+        shell: pwsh
+        run: npm run launcher:check
+      # `npm run test` drives steps.mjs for real work and adds the client suite.
+      - name: Test suites via `npm run test` (steps.mjs)
+        shell: pwsh
+        run: npm run test
+
+  # ------------------------------------------------- cross-platform Node scripts
+  # Same narrow scope as the Windows job, on the default macOS shell (bash).
+  macos-scripts:
+    name: scripts (macos-latest)
+    runs-on: macos-latest
+    timeout-minutes: 30
+    env:
+      # These runners provision no MySQL: MongoDB is selected explicitly, never by
+      # falling through to an unset variable.
+      DATABASE_PROVIDER: mongodb
+      # Keep the mongod binary in step with server/tests/globalSetup.js.
+      MONGOMS_VERSION: '7.0.14'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      # mongodb-memory-server downloads ~175 MB of mongod on first use; without this,
+      # every run pays for it. Restored after `npm ci`, which wipes node_modules.
+      - name: Cache the mongod binary (mongodb-memory-server)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/mongodb-binaries
+            node_modules/.cache/mongodb-memory-server
+          key: ${{ runner.os }}-mongod-${{ env.MONGOMS_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-mongod-
+      - name: Lint
+        run: npm run lint
+      - name: Server tests (in-memory MongoDB; MySQL suites skip without MYSQL_TEST_*)
+        run: npm run test:server
+      # Both launchers through npm: steps.mjs -> npm run launcher:env -> with-env.mjs -> child.
+      - name: Node launchers (steps.mjs + with-env.mjs)
+        shell: bash
+        run: npm run launcher:check
+      # `npm run test` drives steps.mjs for real work and adds the client suite.
+      - name: Test suites via `npm run test` (steps.mjs)
+        shell: bash
+        run: npm run test

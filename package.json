@@ -1,0 +1,67 @@
+{
+  "name": "catalogue-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enterprise product catalogue: Express API on MySQL or MongoDB (Repository Pattern) + React/RTK Query storefront & admin dashboard",
+  "type": "module",
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "node server/scripts/dev.mjs",
+    "dev:server": "npm run dev --workspace server",
+    "dev:client": "npm run dev --workspace client",
+    "dev:mongodb": "node server/scripts/dev.mjs mongodb",
+    "dev:mysql": "node server/scripts/dev.mjs mysql",
+    "build": "npm run build --workspace client",
+    "start": "npm run start --workspace server",
+    "start:mongodb": "npm run start:mongodb --workspace server",
+    "start:mysql": "npm run start:mysql --workspace server",
+    "setup": "node server/scripts/setup.mjs",
+    "setup:mongodb": "node server/scripts/setup.mjs mongodb",
+    "setup:mysql": "node server/scripts/setup.mjs mysql",
+    "seed": "npm run seed --workspace server",
+    "seed:mongodb": "node server/scripts/with-env.mjs DATABASE_PROVIDER=mongodb -- npm run seed --workspace server",
+    "seed:mysql": "npm run seed:mysql --workspace server",
+    "db:migrate": "npm run db:migrate:mysql --workspace server",
+    "db:migrate:dry-run": "npm run db:migrate:mysql:dry-run --workspace server",
+    "db:status": "npm run db:status:mysql --workspace server",
+    "db:down": "npm run db:down:mysql --workspace server",
+    "migrate:data": "npm run migrate:data --workspace server",
+    "migrate:data:apply": "npm run migrate:data:apply --workspace server",
+    "migrate:data:verify": "npm run migrate:data:verify --workspace server",
+    "migrate:data:rollback": "npm run migrate:data:rollback --workspace server",
+    "test": "node server/scripts/steps.mjs test:server test:client",
+    "test:server": "npm run test --workspace server",
+    "test:client": "npm run test --workspace client",
+    "test:mysql": "npm run test:mysql --workspace server",
+    "test:contracts": "npm run test:contracts --workspace server",
+    "test:migration": "npm run test:migration --workspace server",
+    "test:e2e": "playwright test",
+    "test:e2e:mongodb": "node server/scripts/with-env.mjs DATABASE_PROVIDER=mongodb -- playwright test",
+    "test:e2e:mysql": "node server/scripts/with-env.mjs DATABASE_PROVIDER=mysql -- playwright test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "verify": "node server/scripts/steps.mjs lint format:check test build",
+    "launcher:env": "node server/scripts/with-env.mjs LAUNCHER_CHECK=ok -- node -e \"process.exit(process.env.LAUNCHER_CHECK === 'ok' ? 0 : 7)\"",
+    "launcher:check": "node server/scripts/steps.mjs launcher:env"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.64.1",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "prettier": "^3.9.10"
+  },
+  "overrides": {
+    "vitest": "^5.1.0"
+  }
+}
