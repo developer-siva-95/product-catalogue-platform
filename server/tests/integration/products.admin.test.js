@@ -536,7 +536,6 @@ describe('admin products API (offset pagination, CRUD, OCC, stock)', () => {
     });
   });
 
-
   /**
    * Admin payloads are authenticated and change on every write: they must not be
    * stored by the browser, and must be `private` so no shared cache (CDN/reverse

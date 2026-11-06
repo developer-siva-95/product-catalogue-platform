@@ -34,7 +34,8 @@ function createDashboardFetch({ totals = { all: 12, active: 9, inactive: 3 } } =
 
     if (pathname.endsWith('/admin/products')) {
       const isActive = searchParams.get('isActive');
-      const total = isActive === 'true' ? totals.active : isActive === 'false' ? totals.inactive : totals.all;
+      const total =
+        isActive === 'true' ? totals.active : isActive === 'false' ? totals.inactive : totals.all;
       return jsonResponse({
         data: searchParams.get('limit') === '5' ? [recentProduct] : [],
         meta: { page: 1, limit: Number(searchParams.get('limit') ?? 10), total, totalPages: 1 },
@@ -95,9 +96,7 @@ describe('<AdminDashboardPage /> refresh', () => {
     // Same card as the table, and before it in document order.
     const table = screen.getByRole('table');
     expect(card.contains(table)).toBe(true);
-    expect(
-      button.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+    expect(button.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('re-reads every dashboard query when clicked', async () => {

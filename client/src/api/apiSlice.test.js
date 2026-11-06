@@ -312,9 +312,7 @@ describe('apiSlice tag contract (product / inventory)', () => {
   });
 
   const tagList = (tags) =>
-    tags
-      .map((tag) => (typeof tag === 'string' ? tag : `${tag.type}:${tag.id}`))
-      .sort();
+    tags.map((tag) => (typeof tag === 'string' ? tag : `${tag.type}:${tag.id}`)).sort();
 
   it('provides per-document product and inventory tags on the admin list', () => {
     const tags = apiSlice.endpoints.getAdminProducts.providesTags({
@@ -334,7 +332,9 @@ describe('apiSlice tag contract (product / inventory)', () => {
   });
 
   it('provides an inventory tag for the admin detail of a product', () => {
-    expect(tagList(apiSlice.endpoints.getAdminProduct.providesTags(undefined, undefined, 'p1'))).toEqual(
+    expect(
+      tagList(apiSlice.endpoints.getAdminProduct.providesTags(undefined, undefined, 'p1')),
+    ).toEqual(
       tagList([
         { type: 'Product', id: 'p1' },
         { type: 'Inventory', id: 'p1' },
@@ -374,7 +374,9 @@ describe('apiSlice tag contract (product / inventory)', () => {
   it('resolves a mutation of one product to that document and to the lists', async () => {
     const calls = stubAdminFetch();
     // One active list, one inactive detail: the two shapes a real session has.
-    const list = store.dispatch(apiSlice.endpoints.getAdminProducts.initiate({ page: 1, limit: 10 }));
+    const list = store.dispatch(
+      apiSlice.endpoints.getAdminProducts.initiate({ page: 1, limit: 10 }),
+    );
     await list;
     const detail = store.dispatch(apiSlice.endpoints.getAdminProduct.initiate('p1'));
     await detail;
@@ -407,9 +409,9 @@ describe('apiSlice tag contract (product / inventory)', () => {
     const beforeResubscribe = calls.filter((call) => /\/admin\/products\/p1$/.test(call.pathname));
     const again = store.dispatch(apiSlice.endpoints.getAdminProduct.initiate('p1'));
     await again;
-    expect(
-      calls.filter((call) => /\/admin\/products\/p1$/.test(call.pathname)).length,
-    ).toBe(beforeResubscribe.length + 1);
+    expect(calls.filter((call) => /\/admin\/products\/p1$/.test(call.pathname)).length).toBe(
+      beforeResubscribe.length + 1,
+    );
     again.unsubscribe();
     list.unsubscribe();
   });
@@ -481,16 +483,18 @@ describe('apiSlice tag contract (brands and categories)', () => {
   });
 
   const tagList = (tags) =>
-    tags
-      .map((tag) => (typeof tag === 'string' ? tag : `${tag.type}:${tag.id ?? '*'}`))
-      .sort();
+    tags.map((tag) => (typeof tag === 'string' ? tag : `${tag.type}:${tag.id ?? '*'}`)).sort();
 
   it('provides per-document and list tags for brands', () => {
     const tags = apiSlice.endpoints.getBrands.providesTags({
       data: [{ id: 'brand-1' }, { id: 'brand-2' }],
     });
     expect(tagList(tags)).toEqual(
-      tagList([{ type: 'Brand', id: 'brand-1' }, { type: 'Brand', id: 'brand-2' }, { type: 'Brand', id: 'LIST' }]),
+      tagList([
+        { type: 'Brand', id: 'brand-1' },
+        { type: 'Brand', id: 'brand-2' },
+        { type: 'Brand', id: 'LIST' },
+      ]),
     );
     // A failed/empty response still identifies the list it belongs to.
     expect(tagList(apiSlice.endpoints.getBrands.providesTags({ data: [] }))).toEqual(
@@ -503,13 +507,20 @@ describe('apiSlice tag contract (brands and categories)', () => {
       data: [{ id: 'cat-1' }],
     });
     expect(tagList(tags)).toEqual(
-      tagList([{ type: 'Category', id: 'cat-1' }, { type: 'Category', id: 'LIST' }]),
+      tagList([
+        { type: 'Category', id: 'cat-1' },
+        { type: 'Category', id: 'LIST' },
+      ]),
     );
   });
 
   it.each([
     ['createBrand', {}, ['Brand:LIST', 'Product:*']],
-    ['updateBrand', { id: 'brand-1', name: 'Aurora X' }, ['Brand:brand-1', 'Brand:LIST', 'Product:*']],
+    [
+      'updateBrand',
+      { id: 'brand-1', name: 'Aurora X' },
+      ['Brand:brand-1', 'Brand:LIST', 'Product:*'],
+    ],
     ['deleteBrand', 'brand-1', ['Brand:LIST', 'Product:*']],
   ])('%s invalidates its brand tags and the product displays', (endpoint, arg, expected) => {
     const tags = apiSlice.endpoints[endpoint].invalidatesTags(undefined, undefined, arg);
@@ -518,7 +529,11 @@ describe('apiSlice tag contract (brands and categories)', () => {
 
   it.each([
     ['createCategory', {}, ['Category:LIST', 'Product:*']],
-    ['updateCategory', { id: 'cat-1', name: 'Lamps' }, ['Category:cat-1', 'Category:LIST', 'Product:*']],
+    [
+      'updateCategory',
+      { id: 'cat-1', name: 'Lamps' },
+      ['Category:cat-1', 'Category:LIST', 'Product:*'],
+    ],
     ['deleteCategory', 'cat-1', ['Category:LIST', 'Product:*']],
   ])('%s invalidates its category tags and the product displays', (endpoint, arg, expected) => {
     const tags = apiSlice.endpoints[endpoint].invalidatesTags(undefined, undefined, arg);

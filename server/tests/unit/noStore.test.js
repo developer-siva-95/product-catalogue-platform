@@ -1,10 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import {
-  noStoreDynamic,
-  noStorePrivate,
-} from '../../src/middlewares/noStore.js';
+import { noStoreDynamic, noStorePrivate } from '../../src/middlewares/noStore.js';
 
 /**
  * Unit coverage for the HTTP-cache policy.
@@ -57,9 +54,7 @@ describe('noStorePrivate', () => {
   it('marks authenticated admin payloads as private and unstorable', async () => {
     const response = await request(buildApp(echo)).get('/admin/products');
 
-    expect(response.headers['cache-control']).toBe(
-      'no-store, no-cache, must-revalidate, private',
-    );
+    expect(response.headers['cache-control']).toBe('no-store, no-cache, must-revalidate, private');
     expect(response.headers.vary).toMatch(/Cookie/);
     expect(response.headers.vary).toMatch(/Authorization/);
   });

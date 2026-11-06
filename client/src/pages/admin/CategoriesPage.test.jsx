@@ -42,10 +42,7 @@ function createCategoryFetch({ deleteError = null, delayMs = 0 } = {}) {
       return jsonResponse({ data: categories });
     }
     if (pathname === '/api/v1/categories' && method === 'POST') {
-      return jsonResponse(
-        { data: { id: 'cat-9', name: body.name, slug: 'new' } },
-        { status: 201 },
-      );
+      return jsonResponse({ data: { id: 'cat-9', name: body.name, slug: 'new' } }, { status: 201 });
     }
     if (/\/categories\/[^/]+$/.test(pathname) && method === 'PUT') {
       return jsonResponse({ data: { id: 'cat-1', ...body, slug: 'lighting' } });
@@ -156,9 +153,7 @@ describe('<CategoriesPage />', () => {
     const dialog = await screen.findByRole('dialog');
     await user.click(within(dialog).getByRole('button', { name: /delete category/i }));
 
-    await waitFor(() =>
-      expect(stub.calls.some((call) => call.method === 'DELETE')).toBe(true),
-    );
+    await waitFor(() => expect(stub.calls.some((call) => call.method === 'DELETE')).toBe(true));
     // The row survives a refused deletion.
     expect(screen.getByText('Seating')).toBeInTheDocument();
   });

@@ -311,9 +311,7 @@ test.describe('virtualized product grid', () => {
     expect(await showing()).toBe(before.showing);
     await expect(page).not.toHaveURL(/[?&]page=/);
     expect(await mountedCards(page).count()).toBeLessThanOrEqual(40);
-    await expect
-      .poll(() => listRequests.length, { timeout: 5000 })
-      .toBe(requestsBeforeBack + 1);
+    await expect.poll(() => listRequests.length, { timeout: 5000 }).toBe(requestsBeforeBack + 1);
     expect(listRequests.at(-1)).not.toBe('page-1');
     await expect(page.locator('[data-testid="product-grid"]')).toHaveAttribute(
       'data-virtualized',
